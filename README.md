@@ -1,4 +1,4 @@
-# osuOngaku
+# osu!ongaku
 This program lets you export your osu! songs as mp3's with metadata from their respective beatmaps.
 
 
