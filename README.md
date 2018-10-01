@@ -6,7 +6,7 @@ This program lets you export your osu! songs as mp3's with metadata from their r
 
 I highly recommended to backing up your osu!/songs folder before you begin, or copying your osu!/songs folder elsewhere and using that in the program instead just to be safe.
 
-1. Run the excecutable jar (requires Java 8 JRE 1.8 or later).
+1. Run the excecutable jar (requires Java SE 8 or later).
 2. Select your osu!/songs folder. For example: "C:\Program Files (x86)\osu!\Songs", or wherever you copied it.
 3. Select your desired destination folder. This is where the songs will end up.
 4. Choose your options (hover for info).
