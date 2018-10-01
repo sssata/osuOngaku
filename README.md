@@ -20,3 +20,7 @@ I highly recommended to backing up your osu!/songs folder before you begin, or c
 - Coded terribly
 
 Have fun with it, updates (probably) to come!
+
+
+### Download
+Google Drive: https://drive.google.com/file/d/1WuQwG2ktPUe5MYiQ1cASlzv0VSPZxPqC/view?usp=sharing
