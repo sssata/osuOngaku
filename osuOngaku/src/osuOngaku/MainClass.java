@@ -71,7 +71,7 @@ public class MainClass extends JPanel implements ActionListener{
 	JProgressBar progressBar;
 	
 	BufferedImage background;
-	BufferedImage icon;
+	ArrayList<BufferedImage> iconList;
 
 	JFileChooser fc;
 	
@@ -229,25 +229,17 @@ public class MainClass extends JPanel implements ActionListener{
 		);
 
 		
-		// BG image
+		// BG Image
 		try {
 			background = ImageIO.read(getClass().getResource("/images/background.png"));
 			
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			System.out.println("Can't load background image...");
 			e.printStackTrace();
 		}
 		
-		// Icon image
-		/*try {
-			icon = ImageIO.read(getClass().getResource("/images/icon.png"));
-		} catch (IOException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		frame.setIconImage(icon);*/
 		
+		// Icon Image
 		applyIconImage();
 
 	}
@@ -261,7 +253,7 @@ public class MainClass extends JPanel implements ActionListener{
 		progressBar.setEnabled(true);
 		progressBar.setIndeterminate(true);
 		progressBar.setStringPainted(true);
-		progressBar.setString("Searching input folder for songs... " + inputFolderPath);
+		progressBar.setString("Searching input folder for songs...");
 		
 		// Test valid in/output folders
 		File testInput = new File (inputFolderPath);
@@ -395,7 +387,9 @@ public class MainClass extends JPanel implements ActionListener{
 				
 			}
 			
-			if (!hasOsuFile) {
+			if (hasOsuFile) {
+				progressBar.setString("Searching input folder for songs... found: " + SongArrayList.size());
+			} else {
 				System.out.println("No osu file found in: " + songFolderDir.getAbsolutePath());
 				logLine("No osu file found in: " + songFolderDir.getAbsolutePath());
 			}
@@ -622,6 +616,7 @@ public class MainClass extends JPanel implements ActionListener{
 			mp3file.removeCustomTag();
 			mp3file.removeId3v1Tag();
 		}*/
+
 		mp3file.removeCustomTag();
 		mp3file.removeId3v1Tag();
 		mp3file.removeId3v2Tag();
@@ -636,16 +631,16 @@ public class MainClass extends JPanel implements ActionListener{
 			id3v2Tag.setArtist(song.getData()[2]);
 		}
 		id3v2Tag.setComposer(song.getData()[4]);
-		//id3v2Tag.setOriginalArtist(song.getData()[5]);
+		id3v2Tag.setPublisher(song.getData()[5]);
 		id3v2Tag.setComment(song.getData()[6]);
-		id3v2Tag.setAlbumArtist(song.getData()[5]);
+		//id3v2Tag.setAlbumArtist(song.getData()[5]);
 		
 		if (useAlbumArtCheckbox.isSelected() && song.getBgFilename() != null && !song.getBgFilename().equals("")) {
 
 
 			try {
 				applyAlbumArt(id3v2Tag, song);
-			} catch (IOException e) {
+			} catch (Exception e) {
 				logLine("Failed to set album art.");
 				System.out.println("Failed to set album art.");
 				e.printStackTrace();
@@ -655,10 +650,12 @@ public class MainClass extends JPanel implements ActionListener{
 		
 		mp3file.setId3v2Tag(id3v2Tag);
 		
+		id3v2Tag = null;
+		
 		return;
 	}
 	
-	private void applyAlbumArt(ID3v2 id3v2Tag, Song song) throws IOException {
+	private void applyAlbumArt(ID3v2 id3v2Tag, Song song) throws Exception {
 		
 		File bgFile = new File(song.getSongFolderName() + "\\" + song.getBgFilename());
 		
@@ -749,11 +746,10 @@ public class MainClass extends JPanel implements ActionListener{
 	}
 	
 	private void applyIconImage() {
-		ArrayList<BufferedImage> iconList = new ArrayList<BufferedImage>();
+		iconList = new ArrayList<BufferedImage>();
 		
 		
 		try {
-			icon = ImageIO.read(getClass().getResource("/images/icon.png"));
 			iconList.add(ImageIO.read(getClass().getResource("/images/icon128.png")));
 			iconList.add(ImageIO.read(getClass().getResource("/images/icon64.png")));
 			iconList.add(ImageIO.read(getClass().getResource("/images/icon32.png")));
