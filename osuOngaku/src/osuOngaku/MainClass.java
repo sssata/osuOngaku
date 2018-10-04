@@ -6,6 +6,7 @@ import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -16,6 +17,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
+import java.nio.MappedByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileChannel.MapMode;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
@@ -42,7 +46,6 @@ import com.mpatric.mp3agic.InvalidDataException;
 import com.mpatric.mp3agic.Mp3File;
 import com.mpatric.mp3agic.NotSupportedException;
 import com.mpatric.mp3agic.UnsupportedTagException;
-
 
 
 public class MainClass extends JPanel implements ActionListener{
@@ -360,8 +363,8 @@ public class MainClass extends JPanel implements ActionListener{
 				
 				// If it gets here, than the file is a valid .osu file
 				hasOsuFile = true;
-				System.out.println("Found osu file:" + osuFile.getAbsolutePath());
-				logLine("Found osu file:" + osuFile.getAbsolutePath());
+				System.out.println("Found osu file:" + osuFile.getName());
+				logLine("Found osu file:" + osuFile.getName());
 				
 				
 				Song song = new Song();
@@ -421,16 +424,52 @@ public class MainClass extends JPanel implements ActionListener{
 		
 		song.setSongFolderName(osuFile.getParent());
 		
+		FileInputStream stream = null;
+		final FileChannel channel;
+		final MappedByteBuffer buffer;
+		final int fileSize;
+		byte [] byteArray = null;
+		
+		try {
+			stream = new FileInputStream(osuFile);
+			channel  = stream.getChannel();
+			buffer   = channel.map(MapMode.READ_ONLY, 0, osuFile.length());
+			fileSize = (int)osuFile.length();
+			byteArray = new byte[(int)channel.size()];
+			buffer.get(byteArray);
+			
+ 		} catch (Exception e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} finally {
+			try {
+				stream.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
 
+		
 		// Begin reading file
 		BufferedReader reader = null;
 		try {
 			
 			// Initialize reader that supports UTF-8
-			reader = new BufferedReader(
+			/*reader = new BufferedReader(
 					new InputStreamReader(
 							new FileInputStream(osuFile), "UTF8")); // Read .osu file in UTF-8
-			
+			*/
+			if (byteArray != null) {
+				reader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(byteArray), "UTF8"));
+			} else {
+				System.out.println("Failed to read with FileChannel!");
+				logLine("Failed to read with FileChanel!");
+				reader = new BufferedReader(
+						new InputStreamReader(
+								new FileInputStream(osuFile), "UTF8")); // Read .osu file in UTF-8
+			}
 			
 			// Loop through each line of the osu file
 			String line;
@@ -538,6 +577,14 @@ public class MainClass extends JPanel implements ActionListener{
 			// Create file and mp3 file
 			File songFile = new File (song.getSongFolderName() + "\\" + song.getAudioFilename());
 			
+			// Prepare filename according to setting
+			String audioFileName;
+			if (useRenameFileCheckbox.isSelected()) {
+				audioFileName = new File(song.getSongFolderName()).getName() + "." + getExtension(song.getAudioFilename().toLowerCase());
+			} else {
+				audioFileName = songFile.getName();
+			}
+			
 			System.out.println("Processing: " + songFile.getAbsolutePath());
 			logLine("Processing: " + songFile.getAbsolutePath());
 			logLine();
@@ -555,19 +602,26 @@ public class MainClass extends JPanel implements ActionListener{
 				// Create mp3 file with modifiable tags;
 				Mp3File mp3file = null;
 				
+
+				
 				try {
 					mp3file = new Mp3File(songFile);
 				} catch (UnsupportedTagException e) {
-					logLine("Opening mp3: UnsupportedTagException");
+					logLine("Opening mp3: UnsupportedTagException" + songFile);
 					e.printStackTrace();
 				} catch (InvalidDataException e) {
-					logLine("Opening mp3: InvalidDataException");
+					logLine("Opening mp3: InvalidDataException" + songFile);
 					e.printStackTrace();
 				} catch (IOException e) {
-					logLine("Opening mp3: UnsupportedTagException");
+					logLine("Opening mp3: UnsupportedTagException" + songFile);
 					e.printStackTrace();
 				}
 				if (mp3file == null) {
+					
+					// If MP3 FAILS TO OPEN, DIRECT COPY FILE
+					logLine("Failed to read mp3 file, directly copying file.");
+					copyFile(songFile,new File(destFolder.getAbsolutePath() + "//" + audioFileName));
+					
 					continue;
 				}
 
@@ -575,9 +629,9 @@ public class MainClass extends JPanel implements ActionListener{
 				
 
 				// SAVE MP3
-				String mp3FileName = new File(song.getSongFolderName()).getName();
+
 				try {
-					mp3file.save(destFolder.getAbsolutePath() + "\\" + mp3FileName + ".mp3");
+					mp3file.save(destFolder.getAbsolutePath() + "\\" + audioFileName);
 				} catch (NotSupportedException e) {
 					logLine("Saving: NotSupportedException");
 					e.printStackTrace();
@@ -588,14 +642,10 @@ public class MainClass extends JPanel implements ActionListener{
 
 
 			} else { // DIRECT COPY NON-MP3 AUDIO FILE
-				logLine("Audio file is not mp3 file, directly copying file.");
 				
-				if (useRenameFileCheckbox.isSelected()) {
-					String audioFileName = new File(song.getSongFolderName()).getName() + "." + getExtension(song.getAudioFilename());
-					copyFile(songFile,new File(destFolder.getAbsolutePath() + "//" + audioFileName));
-				} else {
-					copyFile(songFile,new File(destFolder.getAbsolutePath() + "//" + songFile.getName()));
-				}
+				logLine("Audio file is not mp3 file, directly copying file.");
+				copyFile(songFile,new File(destFolder.getAbsolutePath() + "//" + audioFileName));
+				
 			}
 			
 			//SET PROGRESS BAR
@@ -604,6 +654,7 @@ public class MainClass extends JPanel implements ActionListener{
 
 		}
 	}
+	
 	
 	private void applyTags (Mp3File mp3file, Song song) {
 		
