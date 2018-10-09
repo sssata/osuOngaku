@@ -24,3 +24,5 @@ Have fun with it, updates (probably) to come!
 
 ### Download
 Link: https://puu.sh/BHYmc.jar
+
+^ the link goes directly to download
