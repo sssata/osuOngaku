@@ -23,4 +23,6 @@ Have fun with it, updates (probably) to come!
 
 
 ### Download
-Google Drive: https://drive.google.com/file/d/1WuQwG2ktPUe5MYiQ1cASlzv0VSPZxPqC/view?usp=sharing
+Link: https://puu.sh/BHYmc.jar
+
+^ the link goes directly to download
