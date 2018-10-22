@@ -61,12 +61,14 @@ public class MainClass extends JPanel implements ActionListener{
 	JCheckBox useUnicodeCheckbox;
 	JCheckBox useAlbumArtCheckbox;
 	JCheckBox useRemoveDuplicatesCheckbox;
+	JCheckBox checkExistingCheckbox;
 
 	JTextField inputPathTF;
 	JTextField outputPathTF;
 
 	JLabel inputLabel;
 	JLabel outputLabel;
+	JLabel creditsLabel;
 
 	String inputFolderPath; //osu! Song Folder Path
 	String outputFolderPath; //Output Folder Path
@@ -85,6 +87,7 @@ public class MainClass extends JPanel implements ActionListener{
 	boolean useMetadataWasEnabled;
 
 	ArrayList<Song> SongList; // List of songs including metadata and paths
+	ArrayList<Song> ExistingSongList;
 	
 	String [] imageFormats = {
 		"jpg",
@@ -147,19 +150,28 @@ public class MainClass extends JPanel implements ActionListener{
 		useRemoveDuplicatesCheckbox.setSelected(false);
 		useRemoveDuplicatesCheckbox.setOpaque(false);
 		useRemoveDuplicatesCheckbox.setToolTipText("Sorry, this feature doesn't work yet...");
+		
+		checkExistingCheckbox = new JCheckBox("Don't process songs already in folder");
+		checkExistingCheckbox.setSelected(false);
+		checkExistingCheckbox.setOpaque(false);
+		checkExistingCheckbox.setToolTipText("Sorry, this feature doesn't work yet...");
 
 		inputPathTF = new JTextField();
 		outputPathTF = new JTextField();
 
 		inputLabel = new JLabel("osu! Song Folder:");
 		outputLabel = new JLabel("Destination Folder:");
+		creditsLabel = new JLabel("by sssata/poiuyos");
 
 		useOsuMetadataCheckbox.addActionListener(this);
 		browseInputButton.addActionListener(this);
 		browseOutputButton.addActionListener(this);
 		startButton.addActionListener(this);
 		
-		progressBar = new JProgressBar(0, 1);
+		progressBar = new JProgressBar(0);
+		progressBar.setStringPainted(true);
+		progressBar.setValue(0);
+		progressBar.setString("Ready");
 		progressBar.setEnabled(false);
 		
 		// Variables and Data
@@ -199,7 +211,8 @@ public class MainClass extends JPanel implements ActionListener{
 								.addGroup(layout.createSequentialGroup()
 										.addGap(20)
 										.addComponent(useAlbumArtCheckbox))
-								.addComponent(useRemoveDuplicatesCheckbox))
+								.addComponent(useRemoveDuplicatesCheckbox)
+								.addComponent(checkExistingCheckbox))
 						.addGap(20)
 						.addComponent(startButton, 60, 80, 80))
 				.addComponent(progressBar)
@@ -225,7 +238,8 @@ public class MainClass extends JPanel implements ActionListener{
 								.addComponent(useOsuMetadataCheckbox)
 								.addComponent(useUnicodeCheckbox)
 								.addComponent(useAlbumArtCheckbox)
-								.addComponent(useRemoveDuplicatesCheckbox))
+								.addComponent(useRemoveDuplicatesCheckbox)
+								.addComponent(checkExistingCheckbox))
 						.addComponent(startButton, 30, 60, 60))
 				.addGap(20)
 				.addComponent(progressBar)
@@ -251,12 +265,8 @@ public class MainClass extends JPanel implements ActionListener{
 
 	public void start() throws IOException {
 		
-		// Disable start Button and enable progress bar
+		// Disable start Button
 		setAllButtonsEnabled(false);
-		progressBar.setEnabled(true);
-		progressBar.setIndeterminate(true);
-		progressBar.setStringPainted(true);
-		progressBar.setString("Searching input folder for songs...");
 		
 		// Test valid in/output folders
 		File testInput = new File (inputFolderPath);
@@ -269,6 +279,7 @@ public class MainClass extends JPanel implements ActionListener{
 				    JOptionPane.WARNING_MESSAGE);
 			return;
 		}
+		// delet this
 		testInput = null;
 		testOutput = null;
 		
@@ -286,16 +297,28 @@ public class MainClass extends JPanel implements ActionListener{
 		}
 		
 		
-		
+		// Start Progress bar
+		progressBar.setEnabled(true);
+		progressBar.setIndeterminate(true);
+		progressBar.setStringPainted(true);
+		progressBar.setString("Searching input folder for songs...");
 		
 		System.out.println("searching folder: " + inputFolderPath);
 		logLine("Searching folder: " + inputFolderPath);
 		
+		// SEARCH INPUT FOLDER
 		SongList = searchFolder(new File(inputFolderPath)); // Execute search method
-		
 		
 		// PRINT SONG LIST TO LOG
 		printSongList(SongList);
+		
+		if (checkExistingCheckbox.isSelected()) {
+			// SEARCH OUTPUT FOLDER
+			//progressBar.setString("Searching outputfolder for existing songs...");
+			//ExistingSongList = searchDestinationFolder(new File(inputFolderPath));
+		}
+		
+
 		
 		// SET PROGRESS BAR
 		progressBar.setIndeterminate(false);
@@ -315,13 +338,33 @@ public class MainClass extends JPanel implements ActionListener{
 			e.printStackTrace();
 		}
 		
-		// Re-enable start button
+		// Re-enable start button and reset progress bar
 		setAllButtonsEnabled(true);
 		progressBar.setValue(progressBar.getMinimum());
-		progressBar.setStringPainted(false);
 		progressBar.setEnabled(false);
+		progressBar.setString("Done!");
 
 	}
+	
+	
+	private ArrayList<Song> searchDestinationFolder(File destinationFolder) {
+		ArrayList <Song> songList = new ArrayList<Song>();
+		
+		File destFolderDir = destinationFolder;
+		
+		for (final File songFile : destFolderDir.listFiles()) {
+			System.out.println("Checking destination folder file: " + songFile.getPath());
+			logLine("Checking destination folder file: " + songFile.getPath());
+			if (getExtension(songFile).toLowerCase().equals("mp3")) {
+				Song song = new Song();
+				song.setSongFolderName(songFile.getName());
+			}
+		}
+		
+		return songList;
+		
+	}
+	
 	/**
 	 * Returns 0 if normal
 	 * Returns 1 if no song folders found
@@ -360,6 +403,7 @@ public class MainClass extends JPanel implements ActionListener{
 				if (!osuFile.isFile() || !getExtension(osuFile).equals("osu")) { // check that file is an .osu file
 					continue;
 				}
+				
 				
 				// If it gets here, than the file is a valid .osu file
 				hasOsuFile = true;
@@ -412,6 +456,7 @@ public class MainClass extends JPanel implements ActionListener{
 		
 		return SongArrayList;
 	}
+	
 	
 	/**
 	 * Reads the metadata of osuFile and outputs it to Song
@@ -559,6 +604,7 @@ public class MainClass extends JPanel implements ActionListener{
 		
 		//return song;
 	}
+	
 	
 	private void applyTagsAndSave(ArrayList<Song> SongArrayList, File destFolder){
 		
