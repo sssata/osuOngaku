@@ -15,7 +15,8 @@ public class Song {
 	String audioFilename;
 	String bgFilename;
 	boolean isManiaTaiko;
-	
+	int duration = -1;
+
 	public Song() {
 		for (int i=0; i<data.length; i++) {
 			data[i] = null;
@@ -70,7 +71,14 @@ public class Song {
 	public void setManiaTaiko(boolean isManiaTaiko) {
 		this.isManiaTaiko = isManiaTaiko;
 	}
+	
+	public int getDuration() {
+		return duration;
+	}
 
+	public void setDuration(int duration) {
+		this.duration = duration;
+	}
 
 	
 }
