@@ -1,5 +1,6 @@
 package osuOngaku;
 
+import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -162,6 +163,7 @@ public class MainClass extends JPanel implements ActionListener{
 		inputLabel = new JLabel("osu! Song Folder:");
 		outputLabel = new JLabel("Destination Folder:");
 		creditsLabel = new JLabel("by sssata/poiuyos");
+		creditsLabel.setForeground(new Color(190,190,190));
 
 		useOsuMetadataCheckbox.addActionListener(this);
 		browseInputButton.addActionListener(this);
@@ -191,6 +193,7 @@ public class MainClass extends JPanel implements ActionListener{
 
 		layout.setHorizontalGroup(
 			layout.createParallelGroup(GroupLayout.Alignment.CENTER) // overall
+				.addComponent(creditsLabel)
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.TRAILING) // top half
 						.addGroup(layout.createSequentialGroup() // input selection
 								.addComponent(inputLabel)
@@ -221,7 +224,8 @@ public class MainClass extends JPanel implements ActionListener{
 		
 		layout.setVerticalGroup(
 			layout.createSequentialGroup() // overall
-				.addGap(155)
+				.addGap(145)
+				.addComponent(creditsLabel)
 				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE) // input selection
 						.addComponent(inputLabel)
 						.addComponent(inputPathTF)
@@ -361,8 +365,9 @@ public class MainClass extends JPanel implements ActionListener{
 			logLine("Checking destination folder file: " + songFile.getName());
 			if (getExtension(songFile).toLowerCase().equals("mp3")) {
 				Song song = new Song();
-				song.setSongFolderName(songFile.getName());
+				song.setSongFolderName(songFile.getName().substring(0, songFile.getName().lastIndexOf(".")));
 				songList.add(song);
+				System.out.println(song.getSongFolderName());
 			}
 		}
 		
@@ -456,28 +461,35 @@ public class MainClass extends JPanel implements ActionListener{
 		// REMOVE ALL SONGS IN DUPLICATE SONG LIST
 		for (int i=0; i < songList.size(); i++) {
 			Song song  = songList.get(i);
+			boolean removed = false;
 			
 			// REMOVE DUPLICATES
 			if (useRemoveDuplicatesCheckbox.isSelected()) {
 				for (Song dupSong : duplicateSongList) {
-					if (song.getSongFolderName().equals(dupSong.getSongFolderName())) {
+					if (!removed && song.getSongFolderName().equals(dupSong.getSongFolderName())) {
 						songList.remove(i);
-						duplicateSongList.remove(dupSong);
+						//duplicateSongList.remove(dupSong);
+						removed = true;
+						i--;
+						break;
 					}
 				}
 			}
 			
 			
 			// REMOVE EXISTING
-			if (checkExistingCheckbox.isSelected()) {
+			if (checkExistingCheckbox.isSelected() && !removed) {
 				for (Song existSong : ExistingSongList) {
-					String existingSongFileName = existSong.getSongFolderName().toLowerCase();
-					existingSongFileName = existingSongFileName.replace(".mp3", "");
+					String existingSongFileName = existSong.getSongFolderName();
 					
-					System.out.println(existingSongFileName);
+					String currentSongFileName = new File(song.getSongFolderName()).getName();
+					//System.out.println(currentSongFileName +  " vs "+ existingSongFileName);
 					
-					if (new File(song.getSongFolderName()).getName().toLowerCase().equals(existingSongFileName)) {
+					if (!removed && currentSongFileName.equals(existingSongFileName)) {
 						songList.remove(i);
+						removed = true;
+						i--;
+						break;
 						//ExistingSongList.remove(existSong);
 					}
 				}
