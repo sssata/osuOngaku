@@ -23,6 +23,7 @@ Have fun with it, updates (probably) to come!
 
 
 ### Download
-Link: http://puu.sh/BQzM9/f3df245e4c.jar
+Link for v0.6: https://puu.sh/BQzM9.jar
+Link for v0.5: https://puu.sh/BHYmc.jar
 
 ^ the link goes directly to download
