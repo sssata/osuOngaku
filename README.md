@@ -23,6 +23,6 @@ Have fun with it, updates (probably) to come!
 
 
 ### Download
-Link: https://puu.sh/BHYmc.jar
+Link: http://puu.sh/BQzM9/f3df245e4c.jar
 
 ^ the link goes directly to download
