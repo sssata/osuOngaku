@@ -88,7 +88,8 @@ public class MainClass extends JPanel implements ActionListener{
 	boolean useMetadataWasEnabled;
 
 	ArrayList<Song> SongList; // List of songs including metadata and paths
-	ArrayList<Song> ExistingSongList;
+	ArrayList<Song> ExistingSongList; // List of existing songs
+	ArrayList<Song> DuplicateSongList; // List of duplicate songs
 	
 	String [] imageFormats = {
 		"jpg",
@@ -150,12 +151,12 @@ public class MainClass extends JPanel implements ActionListener{
 		useRemoveDuplicatesCheckbox = new JCheckBox("Ignore duplicate songs with same title and artist");
 		useRemoveDuplicatesCheckbox.setSelected(false);
 		useRemoveDuplicatesCheckbox.setOpaque(false);
-		useRemoveDuplicatesCheckbox.setToolTipText("Sorry, this feature doesn't work yet...");
+		useRemoveDuplicatesCheckbox.setToolTipText("Takes the longest song out of set of songs with the same artist and title");
 		
 		checkExistingCheckbox = new JCheckBox("Don't process songs already in folder");
 		checkExistingCheckbox.setSelected(false);
 		checkExistingCheckbox.setOpaque(false);
-		//checkExistingCheckbox.setToolTipText("");
+		checkExistingCheckbox.setToolTipText("Checks for mp3 files with same file name as the song folder (will not work without renaming file option)");
 
 		inputPathTF = new JTextField();
 		outputPathTF = new JTextField();
@@ -183,6 +184,8 @@ public class MainClass extends JPanel implements ActionListener{
 		fc = new JFileChooser();
 		
 		SongList = new ArrayList<Song>();
+		DuplicateSongList = new ArrayList<Song>();
+		ExistingSongList = new ArrayList<Song>();
 		
 		
 		// JPanel Group Layout bullshittery
@@ -283,9 +286,6 @@ public class MainClass extends JPanel implements ActionListener{
 				    JOptionPane.WARNING_MESSAGE);
 			return;
 		}
-		// delet this
-		testInput = null;
-		testOutput = null;
 		
 		
 		// Create log file
@@ -310,29 +310,39 @@ public class MainClass extends JPanel implements ActionListener{
 		System.out.println("searching folder: " + inputFolderPath);
 		logLine("Searching folder: " + inputFolderPath);
 		
+		
 		// SEARCH INPUT FOLDER
 		SongList = searchFolder(new File(inputFolderPath)); // Execute search method
 		
 		// PRINT SONG LIST TO LOG
 		printSongList(SongList);
 		
+		// CHECK DUPLICATES OPTION
+		if (useRemoveDuplicatesCheckbox.isEnabled()) {
+			// REMOVE DUPLICATE AND EXISTING SONGS
+			progressBar.setIndeterminate(false);
+			progressBar.setMaximum(SongList.size());
+			progressBar.setString("Removing Duplicate and/or Existing Songs...");
+			
+			DuplicateSongList = searchDuplicates(SongList);
+		}
+		
+		// CHECK EXISTING OPTION
 		if (checkExistingCheckbox.isSelected()) {
-			// SEARCH OUTPUT FOLDER
+			//SEARCH OUTPUT FOLDER
+			progressBar.setIndeterminate(false);
 			progressBar.setString("Searching outputfolder for existing songs...");
+			
 			ExistingSongList = searchDestinationFolder(new File(outputFolderPath));
 		}
 		
-		// REMOVE DUPLICATE AND EXISTING SONGS
-		progressBar.setIndeterminate(false);
-		progressBar.setMaximum(SongList.size());
-		progressBar.setString("Removing Duplicate and/or Existing Songs");
-		removeDuplicates(SongList);
+
 		
-		// SET PROGRESS BAR
-		progressBar.setIndeterminate(false);
-		progressBar.setMaximum(SongList.size());
+		trimSongList(SongList,DuplicateSongList, ExistingSongList);
 		
 		// Apply tags to song in song list and save
+		progressBar.setIndeterminate(false);
+		progressBar.setMaximum(SongList.size());
 		applyTagsAndSave(SongList, new File(outputFolderPath));
 		
 		
@@ -363,7 +373,7 @@ public class MainClass extends JPanel implements ActionListener{
 		for (final File songFile : destFolderDir.listFiles()) {
 			System.out.println("Checking destination folder file: " + songFile.getName());
 			logLine("Checking destination folder file: " + songFile.getName());
-			if (getExtension(songFile).toLowerCase().equals("mp3")) {
+			if (getExtension(songFile).toLowerCase().equals("mp3") || getExtension(songFile).toLowerCase().equals("ogg")) {
 				Song song = new Song();
 				song.setSongFolderName(songFile.getName().substring(0, songFile.getName().lastIndexOf(".")));
 				songList.add(song);
@@ -375,102 +385,102 @@ public class MainClass extends JPanel implements ActionListener{
 		
 	}
 	
-	private void removeDuplicates(ArrayList<Song> songList) {
+	private ArrayList<Song> searchDuplicates(ArrayList<Song> songList) {
 		
 		ArrayList<Song> duplicateSongList = new ArrayList<Song>();
+		//ArrayList<Song> duplicateHistoryList = new ArrayList<Song>();
 		
 		int progress = 0;
-		if (useRemoveDuplicatesCheckbox.isSelected()) {
-			// FOR EVERY SONG IN LIST
-			for (Song targetSong : songList) {
-				progress ++;
-				progressBar.setValue(progress);
 
-				String targetID = targetSong.getData()[0] + targetSong.getData()[2];
-				String targetIDUnicode = targetSong.getData()[1] + targetSong.getData()[3];
+		// FOR EVERY SONG IN LIST
+		for (Song targetSong : songList) {
+			
+			progress ++;
+			progressBar.setValue(progress);
 
-				ArrayList<Song> currentDuplicateSongList = new ArrayList<Song>();
-				currentDuplicateSongList.add(targetSong);
+			String targetID = targetSong.getData()[0] + targetSong.getData()[2];
+			String targetIDUnicode = targetSong.getData()[1] + targetSong.getData()[3];
 
-				// SEARCH THROUGH SONG LIST
-				for (Song currentSong : songList) {
-					if (targetSong.equals(currentSong)) {
-						continue;
-					}
+			ArrayList<Song> currentDuplicateSongList = new ArrayList<Song>();
+			//currentDuplicateSongList.add(targetSong);
 
-					String currentID = currentSong.getData()[0] + targetSong.getData()[2];
-					String currentIDUnicode = currentSong.getData()[1] + targetSong.getData()[3];
+			// SEARCH THROUGH SONG LIST
+			for (Song currentSong : songList) {
 
-					// CHECK IF SONG TITLE + ARTIST MATCHES
-					if (currentID.equals(targetID) || currentIDUnicode.equals(targetIDUnicode)) {
+				String currentID = currentSong.getData()[0] + targetSong.getData()[2];
+				String currentIDUnicode = currentSong.getData()[1] + targetSong.getData()[3];
 
-						System.out.println("Found Duplicate: " + currentID);
-						currentDuplicateSongList.add(currentSong);
-					}
-
+				// CHECK IF SONG TITLE + ARTIST MATCHES
+				// THERE SHOULD BE ONE MATCH (OWN SONG) IF THERE ARE NO DUPLICATES
+				if (currentID.equals(targetID) || currentIDUnicode.equals(targetIDUnicode)) {
+					
+					System.out.println("Found Duplicate: " + currentID);
+					currentDuplicateSongList.add(currentSong);
 				}
 
-				// GO TO NEXT SONG IF NO DUPLICATES FOUND
-				if (currentDuplicateSongList.size() > 1) {
+			}
 
-					// GET DURATION OF DUPLICATE SONGS
-					for (int i = 0; i < currentDuplicateSongList.size(); i++) {
-						Song duplicateSong = currentDuplicateSongList.get(i);
-						File songFile = new File (duplicateSong.getSongFolderName() + "\\" + duplicateSong.getAudioFilename());
+			// GO TO NEXT SONG IF NO DUPLICATES FOUND
+			if (currentDuplicateSongList.size() > 1) {
+
+				// GET DURATION OF ALL DUPLICATE SONGS
+				for (int i = 0; i < currentDuplicateSongList.size(); i++) {
+					Song duplicateSong = currentDuplicateSongList.get(i);
+					File songFile = new File (duplicateSong.getSongFolderName() + "\\" + duplicateSong.getAudioFilename());
+					if(getExtension(songFile.getName().toLowerCase()) == "mp3"){
 						try {
 							Mp3File songMp3 = new Mp3File(songFile);
 							duplicateSong.setDuration((int)songMp3.getLengthInSeconds());
 						} catch (UnsupportedTagException e) {
-							// TODO Auto-generated catch block
 							e.printStackTrace();
 						} catch (InvalidDataException e) {
-							// TODO Auto-generated catch block
 							e.printStackTrace();
 						} catch (IOException e) {
-							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
-
-
 					}
-
-					// FIND LONGEST SONG
-					int longestIndex = 0;
-					for (int i = 0; i < currentDuplicateSongList.size(); i++) {
-						if (currentDuplicateSongList.get(i).getDuration() > currentDuplicateSongList.get(longestIndex).getDuration()) {
-							longestIndex = i;
-						}
-					}
-
-					// REMOVE LONGEST SONG FROM LIST OF DUPLICATE SONGS
-					currentDuplicateSongList.remove(longestIndex);
-
-					// ADD TO MASTER LIST OF DUPLICATE SONGS
-					for (Song song : currentDuplicateSongList) {
-						duplicateSongList.add(song);
-					}
-
 				}
 
+				// FIND LONGEST SONG IN DUPLICATE SONG LIST
+				int longestIndex = 0;
+				for (int i = 0; i < currentDuplicateSongList.size(); i++) {
+					if (currentDuplicateSongList.get(i).getDuration() > currentDuplicateSongList.get(longestIndex).getDuration()) {
+						longestIndex = i;
+					}
+				}
 
+				// REMOVE LONGEST SONG FROM LIST OF DUPLICATE SONGS
+				currentDuplicateSongList.remove(longestIndex);
 
+				// ADD TO MASTER LIST OF DUPLICATE SONGS
+				for (Song song : currentDuplicateSongList) {
+					duplicateSongList.add(song);
+				}
 
 			}
 		}
+
+		return duplicateSongList;
 		
-		// REMOVE ALL SONGS IN DUPLICATE SONG LIST
-		for (int i=0; i < songList.size(); i++) {
-			Song song  = songList.get(i);
+	}
+	
+	private void trimSongList(ArrayList<Song> songList, ArrayList<Song> duplicateSongList, ArrayList<Song> existingSongList) {
+		
+		// GO THROUGH EACH SONG
+		for (int songIndex=0; songIndex < songList.size(); songIndex++) {
+			Song song  = songList.get(songIndex);
 			boolean removed = false;
 			
 			// REMOVE DUPLICATES
 			if (useRemoveDuplicatesCheckbox.isSelected()) {
-				for (Song dupSong : duplicateSongList) {
+				for (int dupSongIndex=0; dupSongIndex < duplicateSongList.size(); dupSongIndex++) {
+					Song dupSong = duplicateSongList.get(dupSongIndex);
 					if (!removed && song.getSongFolderName().equals(dupSong.getSongFolderName())) {
-						songList.remove(i);
-						//duplicateSongList.remove(dupSong);
+						songList.remove(songIndex);
+						duplicateSongList.remove(dupSongIndex);
 						removed = true;
-						i--;
+						songIndex--;
+						dupSongIndex--;
 						break;
 					}
 				}
@@ -479,24 +489,22 @@ public class MainClass extends JPanel implements ActionListener{
 			
 			// REMOVE EXISTING
 			if (checkExistingCheckbox.isSelected() && !removed) {
-				for (Song existSong : ExistingSongList) {
+				for (Song existSong : existingSongList) {
 					String existingSongFileName = existSong.getSongFolderName();
 					
 					String currentSongFileName = new File(song.getSongFolderName()).getName();
 					//System.out.println(currentSongFileName +  " vs "+ existingSongFileName);
 					
 					if (!removed && currentSongFileName.equals(existingSongFileName)) {
-						songList.remove(i);
+						songList.remove(songIndex);
 						removed = true;
-						i--;
+						songIndex--;
 						break;
 						//ExistingSongList.remove(existSong);
 					}
 				}
 			}
 		}
-		
-		
 	}
 	
 	/**
