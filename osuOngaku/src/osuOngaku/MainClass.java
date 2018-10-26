@@ -315,14 +315,17 @@ public class MainClass extends JPanel implements ActionListener{
 		SongList = searchFolder(new File(inputFolderPath)); // Execute search method
 		
 		// PRINT SONG LIST TO LOG
-		printSongList(SongList);
+		//printSongList(SongList);
 		
 		// CHECK DUPLICATES OPTION
-		if (useRemoveDuplicatesCheckbox.isEnabled()) {
+		if (useRemoveDuplicatesCheckbox.isSelected()) {
 			// REMOVE DUPLICATE AND EXISTING SONGS
 			progressBar.setIndeterminate(false);
 			progressBar.setMaximum(SongList.size());
 			progressBar.setString("Removing Duplicate and/or Existing Songs...");
+			
+			System.out.println("useRemoveDuplicatesCheckbox is enabled");
+			logLine("useRemoveDuplicatesCheckbox is enabled");
 			
 			DuplicateSongList = searchDuplicates(SongList);
 		}
@@ -333,11 +336,13 @@ public class MainClass extends JPanel implements ActionListener{
 			progressBar.setIndeterminate(false);
 			progressBar.setString("Searching outputfolder for existing songs...");
 			
+			System.out.println("checkExistingCheckbox is enabled");
+			logLine("checkExistingCheckbox is enabled");
+			
 			ExistingSongList = searchDestinationFolder(new File(outputFolderPath));
 		}
 		
-
-		
+		if (checkExistingCheckbox.isSelected() || useRemoveDuplicatesCheckbox.isSelected())
 		trimSongList(SongList,DuplicateSongList, ExistingSongList);
 		
 		// Apply tags to song in song list and save
@@ -974,6 +979,7 @@ public class MainClass extends JPanel implements ActionListener{
 		useRenameFileCheckbox.setEnabled(isEnabled);
 		useOsuMetadataCheckbox.setEnabled(isEnabled);
 		useRemoveDuplicatesCheckbox.setEnabled(isEnabled);
+		checkExistingCheckbox.setEnabled(isEnabled);
 		
 		if (useMetadataWasEnabled) {
 			useUnicodeCheckbox.setEnabled(isEnabled);
