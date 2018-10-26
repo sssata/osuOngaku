@@ -22,7 +22,7 @@ I highly recommended to backing up your osu!/songs folder before you begin, or c
 Have fun with it, updates (probably) to come!
 
 
-### Download
-Link: https://puu.sh/BHYmc.jar
+### Downloads (Direct)
+Link for v0.6: https://puu.sh/BQzM9.jar
 
-^ the link goes directly to download
+Link for v0.5: https://puu.sh/BHYmc.jar
