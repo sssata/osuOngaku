@@ -23,6 +23,8 @@ Have fun with it, updates (probably) to come!
 
 
 ### Downloads (Direct)
-Link for v0.6: https://puu.sh/BQzM9.jar
+v0.61 https://puu.sh/BR6h7.jar
 
-Link for v0.5: https://puu.sh/BHYmc.jar
+~~v0.6: https://puu.sh/BQzM9.jar~~
+
+v0.5: https://puu.sh/BHYmc.jar
