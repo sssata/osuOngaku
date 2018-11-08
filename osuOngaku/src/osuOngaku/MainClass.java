@@ -149,12 +149,12 @@ public class MainClass extends JPanel implements ActionListener{
 		useAlbumArtCheckbox.setOpaque(false);
 		
 		useRemoveDuplicatesCheckbox = new JCheckBox("Ignore duplicate songs with same title and artist");
-		useRemoveDuplicatesCheckbox.setSelected(false);
+		useRemoveDuplicatesCheckbox.setSelected(true);
 		useRemoveDuplicatesCheckbox.setOpaque(false);
 		useRemoveDuplicatesCheckbox.setToolTipText("Takes the longest song out of set of songs with the same artist and title");
 		
 		checkExistingCheckbox = new JCheckBox("Don't process songs already in folder");
-		checkExistingCheckbox.setSelected(false);
+		checkExistingCheckbox.setSelected(true);
 		checkExistingCheckbox.setOpaque(false);
 		checkExistingCheckbox.setToolTipText("Checks for mp3 files with same file name as the song folder (will not work without renaming file option)");
 
