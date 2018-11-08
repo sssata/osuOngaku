@@ -23,7 +23,9 @@ Have fun with it, updates (probably) to come!
 
 
 ### Downloads (Direct)
-v0.61 https://puu.sh/BR6h7.jar
+v0.62: https://puu.sh/BYbMp.jar
+
+~~v0.61 https://puu.sh/BR6h7.jar~~
 
 ~~v0.6: https://puu.sh/BQzM9.jar~~
 
