@@ -1065,7 +1065,7 @@ public class MainClass extends JPanel implements ActionListener{
 	 */
 	private String getExtension(String fileName) {
 		int index = fileName.lastIndexOf(".");
-		if (index > 0) {
+		if (index >= 0) {
 			return fileName.substring(index+1);
 		}
 		return "";
