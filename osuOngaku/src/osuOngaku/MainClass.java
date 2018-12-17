@@ -63,6 +63,7 @@ public class MainClass extends JPanel implements ActionListener{
 	JCheckBox useAlbumArtCheckbox;
 	JCheckBox useRemoveDuplicatesCheckbox;
 	JCheckBox checkExistingCheckbox;
+	JCheckBox useUniqueAlbumsCheckbox;
 
 	JTextField inputPathTF;
 	JTextField outputPathTF;
@@ -90,6 +91,7 @@ public class MainClass extends JPanel implements ActionListener{
 	ArrayList<Song> SongList; // List of songs including metadata and paths
 	ArrayList<Song> ExistingSongList; // List of existing songs
 	ArrayList<Song> DuplicateSongList; // List of duplicate songs
+
 	
 	String [] imageFormats = {
 		"jpg",
@@ -97,7 +99,7 @@ public class MainClass extends JPanel implements ActionListener{
 		"jpeg"
 	};
 	
-	int albumArtDimension = 500;
+	int albumArtDimension = 600;
 	
 	
 	
@@ -141,7 +143,7 @@ public class MainClass extends JPanel implements ActionListener{
 		useOsuMetadataCheckbox.setOpaque(false);
 		
 		useUnicodeCheckbox = new JCheckBox("Use unicode metadata");
-		useUnicodeCheckbox.setSelected(true);
+		useUnicodeCheckbox.setSelected(false);
 		useUnicodeCheckbox.setOpaque(false);
 		
 		useAlbumArtCheckbox = new JCheckBox("Set beatmap background as MP3 album art");
@@ -158,6 +160,11 @@ public class MainClass extends JPanel implements ActionListener{
 		checkExistingCheckbox.setOpaque(false);
 		checkExistingCheckbox.setToolTipText("Checks for mp3 files with same file name as the song folder (will not work without renaming file option)");
 
+		useUniqueAlbumsCheckbox = new JCheckBox("Use unique numbered albums (to display album art)");
+		useUniqueAlbumsCheckbox.setSelected(true);
+		useUniqueAlbumsCheckbox.setOpaque(false);
+		useUniqueAlbumsCheckbox.setToolTipText("Generates a unique album name for each song based on the source");
+		
 		inputPathTF = new JTextField();
 		outputPathTF = new JTextField();
 
@@ -218,7 +225,8 @@ public class MainClass extends JPanel implements ActionListener{
 										.addGap(20)
 										.addComponent(useAlbumArtCheckbox))
 								.addComponent(useRemoveDuplicatesCheckbox)
-								.addComponent(checkExistingCheckbox))
+								.addComponent(checkExistingCheckbox)
+								.addComponent(useUniqueAlbumsCheckbox))
 						.addGap(20)
 						.addComponent(startButton, 60, 80, 80))
 				.addComponent(progressBar)
@@ -246,7 +254,8 @@ public class MainClass extends JPanel implements ActionListener{
 								.addComponent(useUnicodeCheckbox)
 								.addComponent(useAlbumArtCheckbox)
 								.addComponent(useRemoveDuplicatesCheckbox)
-								.addComponent(checkExistingCheckbox))
+								.addComponent(checkExistingCheckbox)
+								.addComponent(useUniqueAlbumsCheckbox))
 						.addComponent(startButton, 30, 60, 60))
 				.addGap(20)
 				.addComponent(progressBar)
@@ -330,6 +339,8 @@ public class MainClass extends JPanel implements ActionListener{
 			DuplicateSongList = searchDuplicates(SongList);
 		}
 		
+		
+		
 		// CHECK EXISTING OPTION
 		if (checkExistingCheckbox.isSelected()) {
 			//SEARCH OUTPUT FOLDER
@@ -344,6 +355,10 @@ public class MainClass extends JPanel implements ActionListener{
 		
 		if (checkExistingCheckbox.isSelected() || useRemoveDuplicatesCheckbox.isSelected())
 		trimSongList(SongList,DuplicateSongList, ExistingSongList);
+		
+		if (useUniqueAlbumsCheckbox.isSelected()) {
+			AddSourceNumbers(SongList);
+		}
 		
 		// Apply tags to song in song list and save
 		progressBar.setIndeterminate(false);
@@ -510,6 +525,45 @@ public class MainClass extends JPanel implements ActionListener{
 				}
 			}
 		}
+	}
+	
+	private void AddSourceNumbers(ArrayList<Song> songList) {
+		
+		ArrayList<Source> SourceList = new ArrayList<Source>();
+		
+		for (int songIndex = 0; songIndex < songList.size(); songIndex ++) {
+			Song currentSong = songList.get(songIndex);			
+			
+			boolean isExistingSource = false;
+			int sourceNumber = 1;
+			
+			if (currentSong.getData()[5] == null) {
+				currentSong.data[5] = "";
+			}
+			
+			for (int i=0; i<SourceList.size(); i++) {
+				Source currentSource = SourceList.get(i);
+				if (currentSong.getData()[5].equals(currentSource.getSourceName())) {
+					currentSource.setNoOfSongs(currentSource.getNoOfSongs()+1);
+					SourceList.set(i, currentSource);
+					sourceNumber = currentSource.getNoOfSongs();
+					isExistingSource = true;
+				}
+			}
+			
+			if (!isExistingSource) {
+				SourceList.add(new Source(currentSong.getData()[5]));
+			}
+			currentSong.setSourceNumber(sourceNumber);
+		}
+		
+		for (int i=0; i<SourceList.size(); i++) {
+			Source currentSource = SourceList.get(i);
+			logLine(currentSource.sourceName + " " + currentSource.getNoOfSongs());
+		}
+		
+		SourceList = null;
+		
 	}
 	
 	/**
@@ -877,7 +931,18 @@ public class MainClass extends JPanel implements ActionListener{
 		id3v2Tag.setComposer(song.getData()[4]);
 		id3v2Tag.setPublisher(song.getData()[5]);
 		id3v2Tag.setComment(song.getData()[6]);
-		//id3v2Tag.setAlbumArtist(song.getData()[5]);
+		if (useUniqueAlbumsCheckbox.isSelected()) {
+			if (song.getData()[5] == null || song.getData()[5].equals("")) {
+				id3v2Tag.setAlbum("Unknown " + song.getSourceNumber());
+			} else {
+				id3v2Tag.setAlbum(song.getData()[5] + " " + song.getSourceNumber());
+			}
+		}
+		else {
+			id3v2Tag.setAlbum(song.getData()[5]);
+		}
+		
+
 		
 		if (useAlbumArtCheckbox.isSelected() && song.getBgFilename() != null && !song.getBgFilename().equals("")) {
 
@@ -1111,7 +1176,7 @@ public class MainClass extends JPanel implements ActionListener{
 		}
 
 		else if (e.getSource() == startButton) {
-			System.out.println("yeet");
+			//System.out.println("yeet");
 			new Thread(new Runnable() {
 			    @Override public void run() {
 			        try {
@@ -1124,7 +1189,7 @@ public class MainClass extends JPanel implements ActionListener{
 			}).start();
 		}
 		else if (e.getSource() == useOsuMetadataCheckbox) {
-			System.out.println("clicked");
+			//System.out.println("clicked");
 			if (useOsuMetadataCheckbox.isSelected()) {
 				useAlbumArtCheckbox.setEnabled(true);
 				useUnicodeCheckbox.setEnabled(true);
