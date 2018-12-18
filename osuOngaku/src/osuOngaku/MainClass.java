@@ -357,6 +357,7 @@ public class MainClass extends JPanel implements ActionListener{
 		trimSongList(SongList,DuplicateSongList, ExistingSongList);
 		
 		if (useUniqueAlbumsCheckbox.isSelected()) {
+			logLine("useUniqueAlbums is enabled");
 			AddSourceNumbers(SongList);
 		}
 		
@@ -543,7 +544,7 @@ public class MainClass extends JPanel implements ActionListener{
 			
 			for (int i=0; i<SourceList.size(); i++) {
 				Source currentSource = SourceList.get(i);
-				if (currentSong.getData()[5].equals(currentSource.getSourceName())) {
+				if (currentSong.getData()[5].toLowerCase().equals(currentSource.getSourceName().toLowerCase())) {
 					currentSource.setNoOfSongs(currentSource.getNoOfSongs()+1);
 					SourceList.set(i, currentSource);
 					sourceNumber = currentSource.getNoOfSongs();
