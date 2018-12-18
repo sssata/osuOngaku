@@ -99,7 +99,7 @@ public class MainClass extends JPanel implements ActionListener{
 		"jpeg"
 	};
 	
-	int albumArtDimension = 600;
+	int albumArtDimension = 500;
 	
 	
 	
@@ -433,9 +433,10 @@ public class MainClass extends JPanel implements ActionListener{
 
 				// CHECK IF SONG TITLE + ARTIST MATCHES
 				// THERE SHOULD BE ONE MATCH (OWN SONG) IF THERE ARE NO DUPLICATES
-				if (currentID.equals(targetID) || currentIDUnicode.equals(targetIDUnicode)) {
+				if (currentID.toLowerCase().equals(targetID.toLowerCase()) || currentIDUnicode.toLowerCase().equals(targetIDUnicode.toLowerCase())) {
 					
 					System.out.println("Found Duplicate: " + currentID);
+					logLine("Found Duplicate: " + currentID);
 					currentDuplicateSongList.add(currentSong);
 				}
 
@@ -448,10 +449,11 @@ public class MainClass extends JPanel implements ActionListener{
 				for (int i = 0; i < currentDuplicateSongList.size(); i++) {
 					Song duplicateSong = currentDuplicateSongList.get(i);
 					File songFile = new File (duplicateSong.getSongFolderName() + "\\" + duplicateSong.getAudioFilename());
-					if(getExtension(songFile.getName().toLowerCase()) == "mp3"){
+					if(getExtension(songFile.getName().toLowerCase()).equals("mp3")){
 						try {
 							Mp3File songMp3 = new Mp3File(songFile);
 							duplicateSong.setDuration((int)songMp3.getLengthInSeconds());
+							logLine("Song Duration: " + " " + duplicateSong.getSongFolderName() + " " + duplicateSong.getDuration());
 						} catch (UnsupportedTagException e) {
 							e.printStackTrace();
 						} catch (InvalidDataException e) {
@@ -460,6 +462,8 @@ public class MainClass extends JPanel implements ActionListener{
 							e.printStackTrace();
 						}
 					}
+					
+					currentDuplicateSongList.set(i, duplicateSong);
 				}
 
 				// FIND LONGEST SONG IN DUPLICATE SONG LIST
@@ -989,7 +993,7 @@ public class MainClass extends JPanel implements ActionListener{
 		baos.close();
 		
 		// APPLY IMAGE TO TAG
-		id3v2Tag.setAlbumImage(imageInByte, "image/jpg");
+		id3v2Tag.setAlbumImage(imageInByte, "image/png");
 	}
 	
 	
