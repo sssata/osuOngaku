@@ -428,8 +428,8 @@ public class MainClass extends JPanel implements ActionListener{
 			// SEARCH THROUGH SONG LIST
 			for (Song currentSong : songList) {
 
-				String currentID = currentSong.getData()[0] + targetSong.getData()[2];
-				String currentIDUnicode = currentSong.getData()[1] + targetSong.getData()[3];
+				String currentID = currentSong.getData()[0] + currentSong.getData()[2];
+				String currentIDUnicode = currentSong.getData()[1] + currentSong.getData()[3];
 
 				// CHECK IF SONG TITLE + ARTIST MATCHES
 				// THERE SHOULD BE ONE MATCH (OWN SONG) IF THERE ARE NO DUPLICATES
