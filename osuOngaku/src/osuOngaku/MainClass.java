@@ -760,7 +760,7 @@ public class MainClass extends JPanel implements ActionListener{
 				}
 				
 				// Find BG image name
-				if (!foundBG && line.contains("\"")) { 
+				if (!foundBG && line.contains("\"") && (line.indexOf("\"") < line.lastIndexOf("\""))) { 
 					boolean isBG = false;
 					line = line.substring(line.indexOf("\"")+1, line.lastIndexOf("\""));
 					//System.out.println(line);
@@ -1050,6 +1050,7 @@ public class MainClass extends JPanel implements ActionListener{
 		useOsuMetadataCheckbox.setEnabled(isEnabled);
 		useRemoveDuplicatesCheckbox.setEnabled(isEnabled);
 		checkExistingCheckbox.setEnabled(isEnabled);
+		useUniqueAlbumsCheckbox.setEnabled(isEnabled);
 		
 		if (useMetadataWasEnabled) {
 			useUnicodeCheckbox.setEnabled(isEnabled);
