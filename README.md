@@ -1,5 +1,5 @@
 # osu!ongaku
-This program lets you export your osu! beatmaps as mp3 songs with metadata and a'lbum art.
+This program lets you export your osu! beatmaps as mp3 songs with metadata and album art.
 
 
 ![Screenshot](Executibles/Screenshot1.png)
