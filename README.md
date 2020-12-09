@@ -23,3 +23,6 @@ I highly recommended to backing up your osu!/songs folder before you begin, or c
 5. Press Start! The first half of the process involves the program searching through the songs folder, and the second half involves applying metadata/album art and saving the mp3 file.
 
 Have fun with it!
+
+
+Last Updated 2019
